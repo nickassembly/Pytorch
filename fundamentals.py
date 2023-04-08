@@ -1,4 +1,4 @@
 import torch
 
-x = torch.empty(3)
+x = torch.empty(2)
 print(x)
