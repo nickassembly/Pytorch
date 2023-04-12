@@ -1,35 +1,42 @@
+
+# 1) Design Model (inputs, output size, forward pass)
+# 2) Construct loss and optimizer
+# 3) Training Loop
+#   - forward pass: compute prediction
+#   - backward pass: gradients
+#   - update weights
+
 import torch
+import torch.nn as nn
 
 # Same as gradients_numpy.py, but using PyTorch
 # f = w*x
 # f = 2*x
-X = torch.tensor([1, 2, 3, 4], dtype=torch.float32)
-Y = torch.tensor([2, 4, 6, 8], dtype=torch.float32)
-
-w = torch.tensor(0.0, dtype=torch.float32, requires_grad=True)
-
-# model prediction
+X = torch.tensor([[1], [2], [3], [4]], dtype=torch.float32)
+Y = torch.tensor([[2], [4], [6], [8]], dtype=torch.float32)
 
 
-def forward(x):
-    return w * x
+X_test = torch.tensor([5], dtype=torch.float32)
+n_samples, n_features = X.shape
+print(n_samples, n_features)
 
-# loss = MSE
+input_size = n_features
+output_size = n_features
 
+model = nn.Linear(input_size, output_size)
 
-def loss(y, y_predicted):
-    return ((y_predicted - y)**2).mean()
-
-
-print(f'Prediction before training: f(5) = {forward(5):.3f}')
+print(f'Prediction before training: f(5) = {model(X_test).item():.3f}')
 
 # Training
 learning_rate = 0.01
 n_iters = 100
 
+loss = nn.MSELoss()  # mean squared error
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
 for epoch in range(n_iters):
     # prediction = forward pass
-    y_pred = forward(X)
+    y_pred = model(X)
 
     # loss
     l = loss(Y, y_pred)
@@ -38,15 +45,15 @@ for epoch in range(n_iters):
     l.backward()  # dl/dw
 
     # update weights
-    with torch.no_grad():
-        w -= learning_rate * w.grad
+    optimizer.step()
 
     # zero gradients
-    w.grad.zero_()
+    optimizer.zero_grad()
 
-    if epoch % 2 == 0:
-        print(f'epoch {epoch + 1}, w = {w:.3f}, loss = {l:.8f}')
+    if epoch % 10 == 0:
+        [w, b] = model.parameters()
+        print(f'epoch {epoch + 1}, w = {w[0][0].item():.3f}, loss = {l:.8f}')
 
-print(f'Prediction after training: f(5) = {forward(5):.3f}')
+print(f'Prediction after training: f(5) = {model(X_test).item():.3f}')
 
 # should increase weights, and decrease loss
